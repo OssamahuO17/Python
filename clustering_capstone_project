@@ -1,0 +1,101 @@
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+
+# Load the CSV file (make sure to use the correct path)
+df = pd.read_csv("C:\Users\ASUS\OneDrive\Desktop\Capstone\dataset capstone.csv")
+
+#That code calculates the percentage of missing values in each column of DataFrame
+missing_data = df.isnull().mean() * 100
+#print(missing_data)
+
+
+#1 Critical Information is : Name , Department, Email
+
+#2 Supplementary Information (Telephone, Office Num))
+
+#3 Research Interests: all the 10 columns that share the name :Research interest
+
+critical_columns = ['Name', 'Department', 'Email']
+missing_critical = df[critical_columns].isnull().mean() * 100
+#print(missing_critical)
+
+# result: 
+# Name: 0% missing (no missing values).
+# Department: 1.39% missing (1 out of 73 rows has a missing department).
+# Email: 0% missing (no missing values).
+#------------------------------------------------------------
+# there is one missing value we will fill it manully
+df.loc[df['Department'].isnull(), 'Department'] = 'Electrical-Electronics Engineering Department'
+
+
+supplementary_columns = ['Telephone', 'Office No']
+missing_supplementary = df[supplementary_columns].isnull().mean() * 100
+#print(missing_supplementary)
+
+# no missing data in supplementary_columns
+
+
+research_columns = [f'Research Interest {i}' for i in range(1, 11)]
+missing_research = df[research_columns].isnull().mean() * 100
+#print(missing_research)
+
+# Research Interest 1      2.777778
+# Research Interest 2      2.777778
+# Research Interest 3      6.944444
+# Research Interest 4     22.222222
+# since there is alot of missing items we will drop the rest
+# Research Interest 5     44.444444
+# Research Interest 6     68.055556
+# Research Interest 7     75.000000
+# Research Interest 8     83.333333
+# Research Interest 9     87.500000
+# Research Interest 10    90.277778
+
+columns_to_drop = [f'Research Interest {i}' for i in range(5, 14)]
+df.drop(columns=columns_to_drop, inplace=True)
+
+
+
+#  1Preprocess the Data for Clustering: 
+#---------------------------------
+# Convert categorical variables  to numerical format using one-hot encoding or label encoding(only department column).
+df_encoded = pd.get_dummies(df, columns=['Department'], drop_first=True)
+
+# 2 Select Features: Choose the encoded columns and the research interest columns for clustering.
+features = df_encoded[[f'Research Interest {i}' for i in range(1, 5)] + list(df_encoded.columns[df_encoded.columns.str.startswith('Department')])]
+
+# 3  Standardize the Data  -->Improves Clustering Quality and Faster Convergence: :
+
+
+scaler = StandardScaler()
+
+# Select numeric columns (research interests and encoded department columns)
+numeric_columns = df_encoded.select_dtypes(include=['float64', 'int64']).columns
+df_numeric = df_encoded[numeric_columns]
+
+df.to_excel('new_dataset.xlsx', index=False)
+
+
+# The columns I see in the datafraem are like this (in the following order) :
+# Name
+# Affiliation
+# Department
+# Email
+# Telephone
+# Fax
+# Office No
+# Address
+# Undergraduate Education
+# Graduate Education (Master's Degree) 1
+# Graduate Education (Master's Degree) 2
+#  Graduate Education (Doctorate Degree)  
+#  Research Interest 1
+#  Research Interest 2
+#  Research Interest 3
+#  Research Interest 4
+
+# ------------
+# 1- we need to drop the unnecessary columns 
+# 2- check the missing values (master 2/ phd)
+# 3- find a way to deal with string values
+# search for k-medouds method
